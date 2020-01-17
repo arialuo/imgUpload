@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<body>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>
+		图片批量上传拖动
+	</title>
+	<link href="css/font-awesome.min.css" rel="stylesheet" />
+	<link href="css/main.css" rel="stylesheet" />
+	<style>
+		
+	</style>
+	</head>
+	<div id="vuecon">
+		<div class="square" id="square">
+			<div class="addimg-icon" title="点击选择图片或拖动图片到选框">
+				<input type="file" accept=".jpg,.png.jpeg" multiple="multiple" id="docimg" v-on:change="setImage('docimg')">
+			</div>
+			<div id="previewimg" class="upload-img">
+				<div class="preview-list break" v-show="fileListToImg.length > 0">			
+					<div style="padding:15px;position:relative" class="inlineb-m" v-for="(val,index) in fileListToImg" track-by="index">
+						<div class="fa fa-times panel-remove" v-bind:data-index="index" onclick="deleteimg(this,function deleteFiles(index) {vue.fileList.splice(index, 1);vue.fileListToImg.splice(index,1)})" style="position:absolute;right:4px;top:4px"></div>
+						<div class="img-preview"> 
+							<img style="width: auto; height: 100%;" v-bind:data-imgindex="index" v-bind:src="val.url" onclick="showImg(this)" onload="caculate(this)"> 
+						</div>
+						<div class="upimg_word">{{val.name}}</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="js/gimain.js"></script>
+	<script src="js/uploadimg.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+	<script>
+	var vue = new Vue({
+		el:'#vuecon',
+		data:{
+			fileList:[], //文件列表，上传时可使用
+			fileListToImg:[],//图片预览列表，显示上传图片使用
+		},
+		methods: {
+		   setImage(obj){
+				var docObj = document.getElementById(obj)
+				if(docObj.files && docObj.files.length > 0){
+					for(let i = 0; i < docObj.files.length; i++){
+						this.fileList.push( docObj.files[i])
+						this.fileListToImg.push({'url': window.URL.createObjectURL(docObj.files[i]), 'name':docObj.files[i].name})
+					}					
+				}
+		   }
+		},
+		mounted() {
+		   var square = document.getElementById('square')
+		   var that = this
+		   document.addEventListener('drop',function(e){  //拖后放 
+				e.preventDefault(); 
+			},false)  
+			document.addEventListener('dragover', function(e){    
+				e.preventDefault();        
+			}) 
+			document.addEventListener('drop',function(e){
+			 e.preventDefault()
+			})
+		    square.addEventListener('drop',function(e){
+			  e.preventDefault()
+			  if(e.dataTransfer.files.length > 0 ){
+				for(let i = 0; i < e.dataTransfer.files.length; i++ ){
+					that.fileList.push(e.dataTransfer.files[i])
+					that.fileListToImg.push({'url': window.URL.createObjectURL(e.dataTransfer.files[i]), 'name': e.dataTransfer.files[i].name})
+				}
+			  }
+			  console.log('fileList',that.fileList,'fileListToImg',that.fileListToImg)
+			  },false)
+		},
+	})
+	</script>
+</body>
+</html>
+
+
+

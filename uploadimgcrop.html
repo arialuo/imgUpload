@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <link href="css/main.css" rel="stylesheet" />
+    <link href="css/font-awesome.min.css" rel="stylesheet" />
+    <link href="static/Jcrop/css/jquery.Jcrop.min.css" rel="stylesheet" />
+    <style>
+        #previewimg{
+            width:70%;
+            max-height: 600px;
+            overflow:auto;
+        }
+        ::-webkit-scrollbar
+        {
+            width: 8px;
+            height: 8px;
+            background-color: #F5F5F5;
+        }
+        /*定义滚动条轨道 内阴影+圆角*/
+        ::-webkit-scrollbar-track
+        {
+            -webkit-box-shadow: inset 0 0 6px rgba(250,250,250,0.3);
+            border-radius: 10px;
+            background-color: #F5F5F5;
+        }
+        /*定义滑块 内阴影+圆角*/
+        ::-webkit-scrollbar-thumb
+        {
+            border-radius: 10px;
+            -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.2);
+            background-color: rgb(220,220,220);
+        }
+    </style>
+</head>
+<body>
+	<div class="container">
+        <div class="panel bg-white">
+            图片裁剪需要引入jquery和jcrop
+        </div>
+        <div class="panel mt15 bg-white">
+            <div class="col-1">
+                <div class="form-group hor nobreak">
+                    <div class="label pat4">
+                        请选择图片
+                    </div>
+                     <div class="addimg inlineb-m relative">
+                        <input type="file" multiple="false"   name="file"  id="docimg" onchange="setImagePreview()">
+                        <a href="javascript:void(0)"   class="btn btn-blue file-tip">上传图片</a>
+                        <a href="javascript:void(0)"  class="btn btn-green " onclick="saveCover()">保存封面</a> 
+                        <a href="javascript:void(0)"  class="btn btn-orange " onclick="cancelCover()">取消</a> 
+                    </div>
+                     <div  id="previewimg">
+                        <div class="preview-list">
+                            <img id="imgsrc" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+	<script src="js/gimain.js"></script>
+    <script src="static/jquery-2.2.3.min.js" /></script>
+    <script src="static/Jcrop/js/jquery.Jcrop.min.js" /></script>
+    <script type="text/javascript">
+         var sendPoints = {x1:'',y1:'',x2:'',y2:'',img_w:'',img_h:''} // 保存裁剪信息，传给后台
+         var jcropApi,docObj
+         function setImagePreview() {           
+                docObj = document.getElementById('docimg');
+            if (docObj.files){  
+                $('#imgsrc').attr('src',window.URL.createObjectURL(docObj.files[0]))
+                $('#imgsrc').Jcrop({
+                allowSelect: true, //允许自动选择
+                allowMove: true, //允许拖动
+                allowResize:true,//允许拖动选框
+                aspectRatio:3/2,//初始化裁剪框比例
+                onSelect:getNumbers,//选中后记录数据
+                }, function() {
+                 jcropApi = this;
+                 jcropApi.setSelect([20, 20, 320,220])
+                 jcropApi.enable();
+                });
+                function getNumbers(c){
+                    sendPoints.x2 = Math.round(c.x2);
+                    sendPoints.y2 = Math.round(c.y2);
+                    sendPoints.img_w = Math.round(c.w);
+                    sendPoints.img_h =  Math.round(c.h);
+                    sendPoints.x1 = Math.round(c.x2 - c.w);
+                    sendPoints.y1 =  Math.round(c.y2 - c.h);
+                };
+            }
+        }
+        function saveCover(){ //发送裁剪数据给后端，图片保存后从服务器获取图片并展示
+
+        }
+        function cancelCover(){
+            jcropApi.destroy();
+            docObj.value = ''
+            $('#imgsrc').attr('src','')
+            $('#imgsrc').css({'height':'0px','width':'0px'})
+        }
+    </script>
+</body>
+</html>

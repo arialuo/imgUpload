@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>
+		图片批量上传
+	</title>
+	<link href="css/font-awesome.min.css" rel="stylesheet" />
+	<link href="css/main.css" rel="stylesheet" />
+		<style>
+			.form-group.hor .label {
+				text-align: left;
+				 width: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container" id="vuecon">
+			<form id="uploadImg">
+			   <input type="hidden" name="school_id" id="frameChild" value="637" />
+				<div class="panel  bg-white">
+					<div class="col-1">
+						<div class="form-group hor nobreak">
+							<div class="label pat4">
+								请选择图片
+							</div>
+							<div class="inlineb-t upload-img" id="previewimg">
+								<div class="addimg inlineb-m">
+									<input type="file" accept=".jpg,.png.jpeg"  multiple="true"  id="docimg" onchange="setImagePreview('docimg', 'previewimg',200, addFiles, deleteFiles)">
+									<a href="javascript:void(0)" class="btn btn-green file-tip">选择图片</a>
+									<button v-if="fileList.length > 0 &&!uploaded" type="button" class="btn btn-orange" onclick="uploadImg()">上传图片</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-1 "  style="margin-top:20px;" v-show="uploaded">
+						<div style="border-top:1px solid #e8ecf3;padding-top:10px">本次上传图片{{fileLength}}张，成功{{successCount}}张，失败{{failCount}}张
+							 <a href="{{loadExcel}}"  class="btn btn-green" style="margin-left:20px">下载上传结果表格</a>
+						</div>
+					 </div> 
+				</div>   
+			</form>
+		</div>
+		<script src="js/gimain.js"></script>
+		<script src="js/uploadimg.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+		<script>
+		   
+			var vue = new Vue({
+				el: '#vuecon',
+				data: {
+					hasFail: false,
+					fileList: [],
+					fileLength:0,
+					failListIndex: [], //上传失败图片在fileList里的下标集合
+					failList: [],//上传失败图片集合
+					total: 0, //已成功上传多少张
+					failCount: 0,
+					successCount: 0,
+					uploaded: false,
+					loadExcel: '',
+				},
+				methods: {
+
+				},
+				watch: {
+
+				}
+			})
+
+		  
+			function addFiles(files) {
+				vue.uploaded = false
+				var temp_list = []
+				//console.log('files 是数组吗？', Array.isArray(files))
+				for (var i = 0; i < files.length; i++) {
+					temp_list.push(files[i])
+				}
+				temp_list.reverse()
+				vue.fileList = vue.fileList.concat(temp_list)
+			}
+			function deleteFiles(index) {
+				vue.fileList.splice(index, 1);
+			}
+			function uploadImg() { // 上传方法根据项目实际情况来写
+				var frameFather = parent.document.getElementById('frameFather'), reschoolid = parent.document.getElementById('reschoolid');
+				if (frameFather.value == 1) {
+					document.getElementById('frameChild').value = reschoolid.value
+				}
+				if (document.getElementById('frameChild').value == '') {
+					Frame().errorTip('请选择学校')
+					return;
+				}
+				var objFiles = document.getElementById('docimg')
+				//console.log('获取文件', vue.fileList)
+				var uploadImg = document.getElementById('uploadImg')
+				var formData = new FormData(uploadImg)
+
+				var request = new XMLHttpRequest();
+				request.open("post", '/api/user/uploadfaceimg');
+				for (var i = 0; i < vue.fileList.length; i++) {
+					formData.append(vue.fileList[i].name, vue.fileList[i]);
+				}
+				//formData.append('files', vue.fileList);
+				request.send(formData);
+				Frame().showLoading('图片上传中')
+				request.onreadystatechange = function () {
+					if (request.readyState == 4 && request.status == 200) {
+						Frame().removeLoading()
+						var result = JSON.parse(request.responseText)
+						vue.uploaded = true
+						if (result.res == 0) {
+							if (result.data.failCount == 0) {
+								Frame().tip('全部上传成功', 2000)
+
+							} else {
+								Frame().errorTip(result.data.failCount + '张图片上传失败', 5000)
+							}
+							vue.loadExcel = result.data.resultUrl
+							vue.failCount = result.data.failCount
+							vue.successCount = result.data.successCount
+							objFiles.value = ''
+							vue.fileLength = vue.fileList.length
+							vue.fileList = [];
+							imgObjPreviewstr = []
+							var previewList = document.querySelector('.preview-list')
+							document.body.removeChild(previewList)
+
+						} else {
+							Frame.errorTip('图片上传失败', 2000)
+						}
+					}
+				}
+
+			}
+
+		</script>
+	</body>
+</html>
